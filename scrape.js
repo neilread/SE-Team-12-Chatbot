@@ -119,6 +119,11 @@ async function accessMajor(major, degree, prog, webpage)
         webpage = await accessDegree(degree, prog, null);
     }
 
+    if(major == null)
+    {
+        major = "Software Development";
+    }
+
     return await getPageByElementText(webpage, "li a", major);
 }
 
@@ -198,7 +203,7 @@ function test(arg)
     return "Hello" + arg;
 }
 
-getPapersForMajor("Software Development", "Bachelor of Computer and Information Sciences", "Engineering, computer and mathematical sciences", null).then((value)=>
+getPapersForMajor("Computer Science", "Bachelor of Computer and Information Sciences", "Engineering, computer and mathematical sciences", null).then((value)=>
 {
     if(value != null)
     {
