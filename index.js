@@ -1,5 +1,5 @@
 const scr = require('./test');
-const DialogflowApp = require('actions-on-google').DialogflowApp
+/*const DialogflowApp = require('actions-on-google').DialogflowApp
 const express = require('express');
 let app = express();
 
@@ -24,6 +24,6 @@ restService.post('/echo', function(req, res) {
 
 exports.webhook = (req, rsp) =>
 {
-  rsp.json({ fulfillmentText: req.queryId });
+  rsp.json({ fulfillmentText: "hello" });
   //rsp.json({ fulfillmentText: "hi" });
 };
