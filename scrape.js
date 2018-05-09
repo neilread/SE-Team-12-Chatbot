@@ -7,6 +7,14 @@ request('http://www.google.com/', function(err, resp, html) {
           //console.log(html); 
       }
 });
+
+class Test{
+    static t()
+    {
+        return "Hello World!";
+    }
+}
+
 const puppeteer = require("puppeteer");
 const undergradProgrammes = "https://www.aut.ac.nz/study/study-options";
 
@@ -209,3 +217,4 @@ getPapersForMajor("Software Development", "Bachelor of Computer and Information 
 });
 
 //findDegree("Software Development");
+module.exports.Test = Test;

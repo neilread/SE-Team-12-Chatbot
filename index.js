@@ -1,4 +1,5 @@
+const scr = require('./test');
+
 exports.helloHttp = function helloHttp (request, response) {
-  response.json({ fulfillmentText: 'This is a sample response from your webhook!' });
+  response.json({ fulfillmentText: scr.Test.t(request.fulfillmentText.) });
 };
-    
