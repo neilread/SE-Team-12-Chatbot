@@ -1,0 +1,23 @@
+{
+  "name": "se-team-12-chatbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neilread/SE-Team-12-Chatbot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/neilread/SE-Team-12-Chatbot/issues"
+  },
+  "homepage": "https://github.com/neilread/SE-Team-12-Chatbot#readme",
+  "dependencies": {
+    "actions-on-google": "^1.11.0",
+    "express": "^4.16.3"
+  }
+}
