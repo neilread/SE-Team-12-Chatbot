@@ -1,5 +1,21 @@
 const scr = require('./test');
+/*const express = require('express');
+const bodyParser = require('body-parser');
 
-exports.helloHttp = function helloHttp (request, response) {
-  response.json({ fulfillmentText: scr.Test.t("Hello World!") });
+const restService = express();
+
+/*restService.use(bodyParser.urlEncoded({
+  extended: true
+}));
+
+restService.use(bodyParser.json());
+
+restService.post('/echo', function(req, res) {
+  
+});*/
+
+exports.webhook = (req, rsp) =>
+{
+  rsp.json({ fulfillmentText: req.queryId });
+  //rsp.json({ fulfillmentText: "hi" });
 };
