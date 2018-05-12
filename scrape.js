@@ -8,16 +8,10 @@ request('http://www.google.com/', function(err, resp, html) {
       }
 });
 
-class Test{
-    static t()
-    {
-        return "Hello World!";
-    }
-}
-
 const puppeteer = require("puppeteer");
 const undergradProgrammes = "https://www.aut.ac.nz/study/study-options";
 
+// Represents an AUT paper
 class Paper
 {
     constructor(code, name, year, points)
@@ -28,6 +22,10 @@ class Paper
         this.points = points;
     }
 
+    /**
+     * Converts a string to a paper with the passed year.
+     * Text is in the format [code] [name] ([points] points)
+     */
     static textToPaper(text, year)
     {
         let words = text.split(" ");
@@ -41,7 +39,7 @@ class Paper
             pName += words[i++] + " ";
         }
     
-        return new Paper(words[0], pName, year.text().split(" ")[1], words[i].substr(1));
+        return new Paper(words[0], pName.trim(), year.text().split(" ")[1], words[i].substr(1));
     }
 }
 
@@ -217,4 +215,3 @@ getPapersForMajor("Software Development", "Bachelor of Computer and Information 
 });
 
 //findDegree("Software Development");
-module.exports.Test = Test;
