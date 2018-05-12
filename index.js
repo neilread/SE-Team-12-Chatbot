@@ -14,11 +14,12 @@ server.use(bodyParser.json());
 
 server.post('/process-intent', (req, res) => {
   console.log("Hey, it worked!");
-  return res.json({
+  res.json({fulfillmentText: req.body.queryResult.queryText});
+  /*return res.json({
     speech: 'Something went right!',
     displayText: 'Something went right!',
     source: 'get-movie-details'
-  });
+  });*/
 });
 
 server.listen((process.env.PORT || 8000), () => {
