@@ -1,9 +1,5 @@
-//const functions = require('firebase-functions');
-const scr = require('./test');
-
 const express = require('express');
 const bodyParser = require('body-parser');
-const http = require('http');
 
 const server = express();
 server.use(bodyParser.urlencoded({
@@ -25,27 +21,3 @@ server.post('/process-intent', (req, res) => {
 server.listen((process.env.PORT || 8000), () => {
   console.log("Server is up and running...");
 });
-//const API_KEY = require('./apiKey');
-
-
-/*const express = require('express');
-const bodyParser = require('body-parser');
-
-const restService = express();
-
-restService.use(bodyParser.urlEncoded({
-  extended: true
-}));
-
-restService.use(bodyParser.json());
-
-restService.post('/echo', function(req, res) {
-  
-});*/
-
-/*exports.webhook = (req, rsp) =>
-{
-  let s = JSON.stringify(req);
-  rsp.json({ fulfillmentText: "Hello" });
-  //rsp.json({ fulfillmentText: "hi" });
-};*/

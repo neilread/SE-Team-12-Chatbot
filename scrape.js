@@ -1,5 +1,7 @@
-var request = require('request');
-var cheerio = require('cheerio');
+const request = require("request");
+const cheerio = require("cheerio");
+const util = require("./util");
+const puppeteer = require("puppeteer");
 
 request('http://www.google.com/', function(err, resp, html) {
         if (!err){
@@ -8,7 +10,6 @@ request('http://www.google.com/', function(err, resp, html) {
       }
 });
 
-const puppeteer = require("puppeteer");
 const undergradProgrammes = "https://www.aut.ac.nz/study/study-options";
 
 // Represents an AUT paper
@@ -28,18 +29,18 @@ class Paper
      */
     static textToPaper(text, year)
     {
-        let words = text.split(" ");
+        util.checkIsType(text, "string", "text");
+        util.checkIsInteger(year, "year");
 
-        let i = 1;
+        let words = text.trim().split(" ");
         let pName = "";
-    
-        // To do: error trap for infinite loop
-        while(!words[i].startsWith("("))
+
+        for(let i = 1; i < words.length - 2; i++)
         {
-            pName += words[i++] + " ";
+            pName += words[i] + " ";
         }
     
-        return new Paper(words[0], pName.trim(), year.text().split(" ")[1], words[i].substr(1));
+        return new Paper(words[0], pName.trim(), year, parseInt(words[words.length - 2].substr(1)));
     }
 }
 
@@ -126,25 +127,44 @@ async function getPapersForMajor(major, degree, prog, webpage)
     {
         webpage = await accessMajor(major, degree, prog, webpage);
     }
-
-    await webpage.page.addScriptTag({ content: `${Paper}`});
     
-    return await webpage.page.evaluate(function()
+    // Retrieves all lines of text corresponding to a paper and their year
+    let strings = await webpage.page.evaluate(() =>
     {
-        let papers = new Array();
+        let paperStrings = [];
         $.each($("h2:contains('Year')"), (index, y) =>
         {
+            let year = parseInt($(y).text().split(" ")[1]);
             $.each($(y).nextAll("h3:contains('Complete the following papers')").first().nextAll("ul").first().children("li"), (index, p) =>
             {
-                papers.push(Paper.textToPaper($(p).text(), $(y)));
+                paperStrings.push(
+                {
+                    t: $(p).text(), 
+                    y: year
+                });
             });
 
             let optionalPaper = $(y).nextAll("h3:contains('choose one of')").first().nextAll("ul").children("li").first();
-            papers.push(Paper.textToPaper($(optionalPaper).text(), $(y)));
+            paperStrings.push(
+            {
+                t: $(optionalPaper).text(), 
+                y: year
+            });
         });
         
-        return papers;
+        return paperStrings;
     });
+
+    let papers = [];
+
+    for(let i = 0; i < strings.length; i++)
+    {
+        papers[i] = Paper.textToPaper(strings[i].t, strings[i].y);
+    }
+
+    await webpage.page.close();
+
+    return papers;
 }
 
 async function findDegree(degree)
@@ -191,12 +211,7 @@ async function findDegree(degree)
     });*/
 }
 
-function test(arg)
-{
-    return "Hello" + arg;
-}
-
-getPapersForMajor("Software Development", "Bachelor of Computer and Information Sciences", "Engineering, computer and mathematical sciences", null).then((value)=>
+/*getPapersForMajor("Software Development", "Bachelor of Computer and Information Sciences", "Engineering, computer and mathematical sciences", null).then((value)=>
 {
     if(value != null)
     {
@@ -212,6 +227,26 @@ getPapersForMajor("Software Development", "Bachelor of Computer and Information 
     console.log("done");
 
     return value;
+});*/
+
+function accessHTML(url, callback)
+{
+    request(url, function(error, response, html)
+    {
+        if(!error)
+        {
+            callback(cheerio.load(html))
+        }
+    }, callback);
+}
+
+var $ = accessHTML("https://scotch.io/tutorials/scraping-the-web-with-node-js", ($) =>
+{
+    console.log($("p").text());
 });
 
-//findDegree("Software Development");
+module.exports =
+{
+    Paper,
+    launchPage
+}
