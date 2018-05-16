@@ -44,6 +44,56 @@ class Paper
     }
 }
 
+class PapersForYear
+{
+    constructor(year, compulsoryPapers, chooseOnePapers)
+    {
+        this.year = year;
+        this.compulsoryPapers = compulsoryPapers;
+        this.chooseOnePapers = chooseOnePapers;
+    }
+}
+
+class Degree
+{
+    constructor(points, numYears, potentialPapers)
+    {
+        this.points = points;
+        this.numYears = numYears;
+        this.potentialPapers = potentialPapers;
+    }
+
+    static assignPapersToStudent(degree)
+    {
+        let pointsUsed = 0;
+        let papers = [];
+
+        for(let i = 0; i < degree.potentialPapers.length; i++)
+        {
+            for(let j = 0; j < degree.potentialPapers[i].compulsoryPapers.length; j++)
+            {
+                let paper = degree.potentialPapers[i].compulsoryPapers[j];
+                papers.push(paper);
+                points += paper.points;
+            }
+
+            let paper = degree.potentialPapers[i].chooseOnePapers[0];
+        }
+
+        for(let i = 0; i < degree.potentialPapers.length && pointsUsed < points; i++)
+        {
+            for(let j = 1; j < degree.potentialPapers[i].optionalPapers.length; j++)
+            {
+                let paper = degree.potentialPapers[i].optionalPapers[j];
+                papers.push(paper);
+                points += paper.points;
+            }
+        }
+
+        return papers;
+    }
+}
+
 async function launchPage(url)
 {
     const b = await puppeteer.launch();
@@ -52,14 +102,29 @@ async function launchPage(url)
     return { browser : b, page : p};
 }
 
-async function getPageByElement(url)
+/*async function getPageByElement(url)
 {
     getPageByElement(launchPage(url));
-}
+}*/
 
-async function getPageByElementText(webpage, selector, text)
+async function getPageByElementText(link, selector, text)
 {
-    var result = null;
+    let elements = getElementsBySelector(link, selector);
+    /*let match = elements.find((e) =>
+    {
+        return e.text == text;
+    });*/
+
+    for(let i = 0; i < elements.length; i++)
+    {
+        if(elements[i].text == text)
+        {
+            return elements[i].text;
+        }
+    }
+
+    return null;
+    /*var result = null;
     let headings = await getElementsBySelector(webpage, selector);
     var p = null;
 
@@ -76,12 +141,25 @@ async function getPageByElementText(webpage, selector, text)
         result = await launchPage(p);
     }
 
-    return result;
+    return result;*/
 }
 
-async function getElementsBySelector(webpage, selector)
+async function getElementsBySelector(link, selector)
 {
-    const result = await webpage.page.evaluate((selector) =>
+    return await accessHTML(link, ($) =>
+    {
+        let elements = [];
+        $(selector).each((index, element) =>
+        {
+            elements.push(
+            {
+                "link": $(element).attr("href"),
+                "text": $(element).text()
+            });
+        });
+        return elements;
+    });
+    /*const result = await webpage.page.evaluate((selector) =>
     {
         let elements = Array.from(document.querySelectorAll(selector));
         let links = elements.map(element => 
@@ -90,13 +168,13 @@ async function getElementsBySelector(webpage, selector)
         });
         return links;
     }, selector);
-    return result;
+    return result;*/
 }
 
 async function accessProgramme(prog)
 {
-    const webpage = await launchPage(undergradProgrammes);
-    return await getPageByElementText(webpage, "div.col-sm-6 ul li a", prog);
+    //const webpage = await launchPage(undergradProgrammes);
+    return await getPageByElementText(undergradProgrammes, "div.col-sm-6 ul li a", prog);
 }
 
 async function accessDegree(degree, prog, webpage)
@@ -121,17 +199,18 @@ async function accessMajor(major, degree, prog, webpage)
     return await getPageByElementText(webpage, "li a", major);
 }
 
-async function getPapersForMajor(major, degree, prog, webpage)
+async function getPapersForMajor(major, degree, prog, webpage, callback)
 {
     if(webpage == null)
     {
         webpage = await accessMajor(major, degree, prog, webpage);
     }
+
+    let paperStrings = [];
     
     // Retrieves all lines of text corresponding to a paper and their year
-    let strings = await webpage.page.evaluate(() =>
+    await accessHTML(webpage, ($) =>
     {
-        let paperStrings = [];
         $.each($("h2:contains('Year')"), (index, y) =>
         {
             let year = parseInt($(y).text().split(" ")[1]);
@@ -144,17 +223,37 @@ async function getPapersForMajor(major, degree, prog, webpage)
                 });
             });
 
-            let optionalPaper = $(y).nextAll("h3:contains('choose one of')").first().nextAll("ul").children("li").first();
+            $.each($(y).nextAll("h3:contains('choose one of')").first().nextAll("ul").children("li"), (index, p) =>
+            {
+                paperStrings.push(
+                {
+                    t: $(p).text(), 
+                    y: year
+                });
+            });
+
+            /*let optionalPaper = $(y).nextAll("h3:contains('choose one of')").first().nextAll("ul").children("li").first();
             paperStrings.push(
             {
                 t: $(optionalPaper).text(), 
                 y: year
-            });
+            });*/
         });
-        
-        return paperStrings;
-    });
 
+        let strings = paperStrings;
+        let papers = [];
+
+        for(let i = 0; i < strings.length; i++)
+        {
+            papers[i] = Paper.textToPaper(strings[i].t, strings[i].y);
+        }
+
+        callback(papers);
+        
+        //return paperStrings;
+    });
+    /*console.log(paperStrings);
+    let strings = paperStrings;
     let papers = [];
 
     for(let i = 0; i < strings.length; i++)
@@ -162,9 +261,9 @@ async function getPapersForMajor(major, degree, prog, webpage)
         papers[i] = Paper.textToPaper(strings[i].t, strings[i].y);
     }
 
-    await webpage.page.close();
+    //await webpage.page.close();
 
-    return papers;
+    return papers;*/
 }
 
 async function findDegree(degree)
@@ -211,7 +310,7 @@ async function findDegree(degree)
     });*/
 }
 
-/*getPapersForMajor("Software Development", "Bachelor of Computer and Information Sciences", "Engineering, computer and mathematical sciences", null).then((value)=>
+getPapersForMajor("Software Development", "Bachelor of Computer and Information Sciences", "Engineering, computer and mathematical sciences", null, (papers)=>
 {
     if(value != null)
     {
@@ -227,26 +326,29 @@ async function findDegree(degree)
     console.log("done");
 
     return value;
-});*/
+});
 
-function accessHTML(url, callback)
+async function accessHTML(url, callback)
 {
     request(url, function(error, response, html)
     {
         if(!error)
         {
-            callback(cheerio.load(html))
+            callback(cheerio.load(html));
         }
-    }, callback);
+    });
 }
 
-var $ = accessHTML("https://scotch.io/tutorials/scraping-the-web-with-node-js", ($) =>
+/*var $ = accessHTML("https://scotch.io/tutorials/scraping-the-web-with-node-js", ($) =>
 {
     console.log($("p").text());
-});
+});*/
+
+//console.log(accessHTML("https://scotch.io/tutorials/scraping-the-web-with-node-js"));
 
 module.exports =
 {
     Paper,
-    launchPage
+    launchPage,
+    getPapersForMajor
 }

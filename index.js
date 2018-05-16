@@ -18,6 +18,12 @@ server.post('/process-intent', (req, res) => {
   });*/
 });
 
+server.get("/", (req, res) =>
+{
+    res.sendFile("index.html");
+    console.log("Get request success!");
+});
+
 server.listen((process.env.PORT || 8000), () => {
   console.log("Server is up and running...");
 });
