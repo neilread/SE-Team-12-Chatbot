@@ -1,14 +1,6 @@
 const request = require("request");
 const cheerio = require("cheerio");
 const util = require("./util");
-const puppeteer = require("puppeteer");
-
-/*request('http://www.google.com/', function(err, resp, html) {
-        if (!err){
-          const $ = cheerio.load(html);
-          //console.log(html); 
-      }
-});*/
 
 const undergradProgrammes = "https://www.aut.ac.nz/study/study-options";
 
@@ -112,13 +104,27 @@ class Degree
     }
 }
 
+// Returns all papers for the first listed major of the specified degree
+async function getPapersForDegree(degree, webpage, callback, prog)
+{
+    findDegree(degree, async (page) => 
+    {
+        accessHTML(page, async ($) =>
+        {
+            let m = $("div.panel-body ul li a").first();
+            getPapersForMajor($(m).text(), $(m).attr("href"), callback);
+        });
+    });
+}
+
 async function getPapersForMajor(major, webpage, callback, degree, prog)
 {
-    let retrievePapers = async () =>
+    let retrievePapers = () =>
     {
         // Retrieves all lines of text corresponding to a paper and their year
-        await accessHTML(webpage, ($) =>
+        accessHTML(webpage, ($) =>
         {
+            console.log("Yo");
             let paperStrings = [];
             $("h2:contains('Year')").each((index, y) =>
             {
@@ -159,6 +165,8 @@ async function getPapersForMajor(major, webpage, callback, degree, prog)
 
             let papers = [];
 
+            console.log(paperStrings);
+
             paperStrings.map((p) =>
             {
                 try
@@ -176,7 +184,7 @@ async function getPapersForMajor(major, webpage, callback, degree, prog)
 
     if(degree == null)
     {
-        await findMajor(major, retrievePapers);
+        findMajor(major, retrievePapers);
     }
     else
     {
@@ -186,7 +194,7 @@ async function getPapersForMajor(major, webpage, callback, degree, prog)
 
 async function accessHTML(url, callback)
 {
-    return await request.get(url, function(error, response, html)
+    request.get(url, function(error, response, html)
     {
         if(!error)
         {
@@ -202,14 +210,18 @@ async function findLinks(text, page, selectors, callback, count = 0)
         text = text.trim().toLowerCase();
     }
 
-    await accessHTML(page, ($) =>
+    //console.log(page);
+
+    accessHTML(page, async ($) =>
     {
         if(count == selectors.length - 1)
         {
             $(selectors[count]).each((i, element) =>
             {
+                //console.log($(element).text());
                 if($(element).text().trim().toLowerCase() == text)
                 {
+                    console.log("Heyo");
                     callback($(element).attr("href"));
                     return;
                 }
@@ -217,42 +229,35 @@ async function findLinks(text, page, selectors, callback, count = 0)
         }
         else
         {
+            let links = [];
             $(selectors[count]).each((i, element) =>
             {
-                findLinks(text, $(element).attr("href"), selectors, callback, count + 1);
+                links.push($(element).attr("href"));
             });
+
+            for(let i = 0; i < links.length; i++)
+            {
+                //console.log(links[i]);
+                await findLinks(text, links[i], selectors, callback, count + 1);
+            }
         }
     });
 }
 
-/*async function findLinkByText(page, text, callback, selector = "ul li a")
-{
-    text = text.trim().toLowerCase();
-
-    await accessHTML(page, ($) =>
-    {
-        $(selector).each((i, element) =>
-        {
-            if($(element).text().trim().toLowerCase() == text)
-            {
-                callback($(element).attr("href"));
-                return;
-            }
-        });
-    });
-
-    callback(null);
-}*/
-
 async function findDegree(degree, callback)
 {
-    await findLinks(degree, undergradProgrammes, ["div.col-sm-6 ul li a", "ul li a"], callback);
+    findLinks(degree, undergradProgrammes, ["div.col-sm-6 ul li a", "ul li a"], callback);
 }
 
 async function findMajor(major, callback)
 {
-    await findLinks(major, undergradProgrammes, ["div.col-sm-6 ul li a", "div.panel-body ul li a", "ul li a"], callback);
+    findLinks(major, undergradProgrammes, ["div.col-sm-6 ul li a", "div.panel-body ul li a", "div.tab-pane ul li a"], callback);
 }
+
+getPapersForMajor("Software Development", (link) =>
+{
+    console.log(link);
+});
 
 module.exports =
 {
@@ -260,5 +265,6 @@ module.exports =
     getPapersForMajor,
     accessHTML,
     findDegree,
-    findMajor
+    findMajor,
+    getPapersForDegree
 }
