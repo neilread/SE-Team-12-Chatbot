@@ -14,29 +14,68 @@ describe("textToPaper()", () =>
     });
 });
 
-describe("launchPage()", () =>
+describe("findDegree()", () =>
 {
-    it("should produce a webpage based on the input url", (done) =>
+    it("It should retrieve the link associated with a passed degree", (done) =>
     {
-        let webpage = scrape.launchPage("http://webscraper.io/test-sites").then((value) =>
+        scrape.findDegree("Bachelor of Computer and Information Sciences", (link) =>
         {
-            expect(webpage.page.plainText().startsWith("Test sites")).toBe(true);
+            expect(link).toEqual("https://www.aut.ac.nz/study/study-options/engineering-computer-and-mathematical-sciences/courses/bachelor-of-computer-and-information-sciences");
             done();
-        });        
-    });
+        });
+    }, 30000);
+});
+
+describe("findMajor()", () =>
+{
+    it("It should retrieve the link associated with a passed major", (done) =>
+    {
+        scrape.findMajor("Software Development", (link) =>
+        {
+            expect(link).toEqual("https://www.aut.ac.nz/study/study-options/engineering-computer-and-mathematical-sciences/courses/bachelor-of-computer-and-information-sciences/software-development-major");
+            done();
+        });
+    }, 30000);
 });
 
 describe("getPapersForMajor()", () =>
 {
-    it("It should return an appropriate list of papers that will qualify a student for a specific major and degree", () =>
+    it("It should return an appropriate list of papers that will qualify a student for a specific major and degree", (done) =>
     {
-        let codes = [];
-        let papers = scrape.getPapersForMajor("Software Development", "Bachelor of Computer and Information Sciences");
-        for(let i = 0; i < papers.length; i++)
+        let papers = scrape.getPapersForMajor("Software Development",
+          "https://www.aut.ac.nz/study/study-options/engineering-computer-and-mathematical-sciences/courses/bachelor-of-computer-and-information-sciences/software-development-major",
+           (papers) =>        
         {
-            codes[i] = papers[i].code;
-        }
+            let codes = [];
+            for(let i = 0; i < papers.length; i++)
+            {
+                codes[i] = papers[i].code;
+            }
 
-        expect(codes).toBe(["COMM501", "COMP500", "COMP501", "COMP502", "COMP503", "ENEL504", "INFS500", "MATH500", "COMP600", "COMP602", "COMP603", "INFS600", "INFS601", "COMP604", "COMP704", "COMP719", "ENSE701", "COMP713"])
-    });
+            expect(codes).toEqual(["COMM501", "COMP500", "COMP501", "COMP502", "COMP503", "ENEL504", "INFS500", "MATH500", "MATH501", "MATH502", "STAT500",
+            "COMP600", "COMP602", "COMP603", "INFS600", "INFS601", "COMP604", "INFS602", "COMP704", "COMP719", "ENSE701", "COMP713", "COMP721", "COMP505",
+            "ENSE501", "ENSE502", "COMP612", "MATH604", "COMP705", "COMP710", "COMP716", "COMP720", "COMP724", "INFS700"]);
+            done();
+        }, "Bachelor of Computer and Information Sciences",
+        "Engineering, computer and mathematical sciences");
+    }, 10000);
+
+    it("It should return an appropriate list of papers that will qualify a student for a specific major if the major's degree is not specified", (done) =>
+    {
+        let papers = scrape.getPapersForMajor("Software Development",
+          "https://www.aut.ac.nz/study/study-options/engineering-computer-and-mathematical-sciences/courses/bachelor-of-computer-and-information-sciences/software-development-major",
+           (papers) =>        
+        {
+            let codes = [];
+            for(let i = 0; i < papers.length; i++)
+            {
+                codes[i] = papers[i].code;
+            }
+
+            expect(codes).toEqual(["COMM501", "COMP500", "COMP501", "COMP502", "COMP503", "ENEL504", "INFS500", "MATH500", "MATH501", "MATH502", "STAT500",
+            "COMP600", "COMP602", "COMP603", "INFS600", "INFS601", "COMP604", "INFS602", "COMP704", "COMP719", "ENSE701", "COMP713", "COMP721", "COMP505",
+            "ENSE501", "ENSE502", "COMP612", "MATH604", "COMP705", "COMP710", "COMP716", "COMP720", "COMP724", "INFS700"]);
+            done();
+        });
+    }, 30000);
 });
