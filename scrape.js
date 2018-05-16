@@ -196,6 +196,9 @@ function test(arg)
     return "Hello" + arg;
 }
 
+/*
+    Returns the papers for the given Major parameter.
+*/
 getPapersForMajor("Software Development", "Bachelor of Computer and Information Sciences", "Engineering, computer and mathematical sciences", null).then((value)=>
 {
     if(value != null)
