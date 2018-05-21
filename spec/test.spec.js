@@ -92,9 +92,7 @@ describe("getPapersForDegree()", () =>
                 codes[i] = papers[i].code;
             }
 
-            console.log(codes);
-
-            expect(codes).toEqual(["COMM501, COMP500", "COMP501", "COMP502", "COMP503", "ENEL504", "INFS500", "MATH500", "MATH501", "MATH502", "STAT500", 
+            expect(codes).toEqual(["COMM501", "COMP500", "COMP501", "COMP502", "COMP503", "ENEL504", "INFS500", "MATH500", "MATH501", "MATH502", "STAT500", 
             "COMP600", "INFS600", "STAT600", "STAT601", "INFS601", "STAT603", "COMP704", "STAT700", "STAT702", "COMP723", "STAT701", "COMP505",
             "ENSE501", "ENSE502", "COMP612", "MATH604", "COMP705", "COMP710", "COMP716", "COMP720", "COMP724", "INFS700"]);
 

@@ -4,6 +4,47 @@ const util = require("./util");
 
 const undergradProgrammes = "https://www.aut.ac.nz/study/study-options";
 
+var knownDegrees = {
+    "bachelor of computer and information sciences" : "https://www.aut.ac.nz/study/study-options/engineering-computer-and-mathematical-sciences/courses/bachelor-of-computer-and-information-sciences"
+}
+
+var knownMajors = {
+    "software development" : "https://www.aut.ac.nz/study/study-options/engineering-computer-and-mathematical-sciences/courses/bachelor-of-computer-and-information-sciences/software-development-major"
+}
+
+function getNextElement($, startSelector)
+{
+    return $(startSelector).first().next();
+}
+
+function getKnownDegreeEntry(degree)
+{
+    return knownDegrees[degree.trim().toLowerCase()];
+}
+
+function updateKnownDegrees(degree, link)
+{
+    degree = degree.trim().toLowerCase();
+    if(!knownDegrees[degree])
+    {
+        knownDegrees[degree] = link;
+    }
+}
+
+function getKnownMajorEntry(major)
+{
+    return knownMajors[major.trim().toLowerCase()];
+}
+
+function updateKnownMajors(major, link)
+{
+    major = major.trim().toLowerCase();
+    if(!knownMajors[major])
+    {
+        knownMajors[major] = link;
+    }
+}
+
 // Represents an AUT paper
 class Paper
 {
@@ -107,24 +148,23 @@ class Degree
 // Returns all papers for the first listed major of the specified degree
 async function getPapersForDegree(degree, webpage, callback, prog)
 {
-    findDegree(degree, async (page) => 
+    await findDegree(degree, async (link) => 
     {
-        accessHTML(page, async ($) =>
+        await accessHTML(link, async ($) =>
         {
-            let m = $("div.panel-body ul li a").first();
-            getPapersForMajor($(m).text(), $(m).attr("href"), callback);
+            let m = $("h2:contains('Majors')").next().find("li a").first();
+            await getPapersForMajor($(m).text(), $(m).attr("href"), callback);
         });
     });
 }
 
 async function getPapersForMajor(major, webpage, callback, degree, prog)
 {
-    let retrievePapers = () =>
+    let retrievePapers = async (link) =>
     {
         // Retrieves all lines of text corresponding to a paper and their year
-        accessHTML(webpage, ($) =>
+        await accessHTML(link, ($) =>
         {
-            console.log("Yo");
             let paperStrings = [];
             $("h2:contains('Year')").each((index, y) =>
             {
@@ -165,8 +205,6 @@ async function getPapersForMajor(major, webpage, callback, degree, prog)
 
             let papers = [];
 
-            console.log(paperStrings);
-
             paperStrings.map((p) =>
             {
                 try
@@ -182,23 +220,25 @@ async function getPapersForMajor(major, webpage, callback, degree, prog)
         });
     }
 
-    if(degree == null)
+    webpage = webpage ? webpage : getKnownMajorEntry(major);
+
+    if(webpage == null)
     {
-        findMajor(major, retrievePapers);
+        await findMajor(major, retrievePapers);
     }
     else
     {
-        retrievePapers();
+        await retrievePapers(webpage);
     }
 }
 
 async function accessHTML(url, callback)
 {
-    request.get(url, function(error, response, html)
+    await request.get(url, async (error, response, html) =>
     {
         if(!error)
         {
-            callback(cheerio.load(html));
+            await callback(cheerio.load(html));
         }
     });
 }
@@ -210,18 +250,15 @@ async function findLinks(text, page, selectors, callback, count = 0)
         text = text.trim().toLowerCase();
     }
 
-    //console.log(page);
-
-    accessHTML(page, async ($) =>
+    await accessHTML(page, async ($) =>
     {
+        let list = $(selectors[count]).next().find("li a");
         if(count == selectors.length - 1)
         {
-            $(selectors[count]).each((i, element) =>
+            $(list).each((i, element) =>
             {
-                //console.log($(element).text());
                 if($(element).text().trim().toLowerCase() == text)
                 {
-                    console.log("Heyo");
                     callback($(element).attr("href"));
                     return;
                 }
@@ -230,14 +267,13 @@ async function findLinks(text, page, selectors, callback, count = 0)
         else
         {
             let links = [];
-            $(selectors[count]).each((i, element) =>
+            $(list).each((i, element) =>
             {
                 links.push($(element).attr("href"));
             });
 
             for(let i = 0; i < links.length; i++)
             {
-                //console.log(links[i]);
                 await findLinks(text, links[i], selectors, callback, count + 1);
             }
         }
@@ -246,18 +282,37 @@ async function findLinks(text, page, selectors, callback, count = 0)
 
 async function findDegree(degree, callback)
 {
-    findLinks(degree, undergradProgrammes, ["div.col-sm-6 ul li a", "ul li a"], callback);
+    await findLinks(degree, undergradProgrammes, ["h2:contains('Browse study options')", "h2:contains('Bachelor's degree')"], (link) =>
+    {
+        updateKnownDegrees(degree, link);
+        callback(link);
+    });
 }
 
 async function findMajor(major, callback)
 {
-    findLinks(major, undergradProgrammes, ["div.col-sm-6 ul li a", "div.panel-body ul li a", "div.tab-pane ul li a"], callback);
+    await findLinks(major, undergradProgrammes, ["h2:contains('Browse study options')", "h2:contains('Bachelor's degree')", "h2:contains('Major')"], (link) =>
+    {
+        updateKnownMajors(major, link);
+        callback(link);
+    });
 }
 
-getPapersForMajor("Software Development", (link) =>
+getPapersForMajor("Astronomy", null, (papers) =>
 {
+    console.log(papers);
+}, null, null);
+
+/*findMajor("Software Development", (link) =>
+{
+    console.log("Hello");
     console.log(link);
-});
+});*/
+
+/*getPapersForDegree("Bachelor of Computer and Information Sciences", null, (papers) =>
+{
+    console.log(papers);
+}, null);*/
 
 module.exports =
 {
