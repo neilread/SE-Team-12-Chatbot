@@ -36,7 +36,7 @@ server.post('/process-intent', (req, res) => {
 
 server.get("/", (req, res) =>
 {
-    res.sendFile("index.html", {"root":"html"});
+    //res.sendFile("index.html", {"root":"html"});
     console.log("Get request success!");
 });
 
