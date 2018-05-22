@@ -87,8 +87,6 @@ class Paper
         {
             pName += words[i] + " ";
         }
-
-        console.log(parseInt(words[0]));
     
         return new Paper(words[0], pName.trim(), year, parseInt(words[words.length - 2].substr(1)));
     }
@@ -310,10 +308,6 @@ async function findMajor(major, callback)
     });
 }
 
-getPapersForMajor("Astronomy", null, (papers) =>
-{
-    console.log(papers);
-});
 module.exports =
 {
     Paper,

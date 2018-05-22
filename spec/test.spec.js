@@ -101,7 +101,7 @@ describe("getPapersForDegree()", () =>
     }, 30000);
 });
 
-describe("getCourseForMajor()", () =>
+/*describe("getCourseForMajor()", () =>
 {
     it("should return a list of papers that meet the requirements for the specified major and degree.", (done) =>
     {
@@ -120,4 +120,4 @@ describe("getCourseForMajor()", () =>
             done(); 
         }); 
     });
-});
+});*/
