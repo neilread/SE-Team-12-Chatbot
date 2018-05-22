@@ -100,3 +100,24 @@ describe("getPapersForDegree()", () =>
         });
     }, 30000);
 });
+
+describe("getCourseForMajor()", () =>
+{
+    it("should return a list of papers that meet the requirements for the specified major and degree.", (done) =>
+    {
+        scrape.getCourseForMajor("Software Development", (papers) =>
+        {
+            let codes = [];
+            for(let i = 0; i < papers.length; i++)
+            {
+                codes[i] = papers[i].code;
+            }
+
+            expect(codes).toEqual(["COMM501", "COMP500", "COMP501", "COMP502", "COMP502", "COMP503", "ENEL504",
+             "INFS500", "MATH500", "COMP600", "COMP602", "COMP603", "INFS600", "INFS601", "COMP604", "COMP704", 
+             "COMP719", "ENSE701", "COMP713", "MATH501", "MATH502", "STAT500", "INFS602", "COMP721"]);
+
+            done(); 
+        }); 
+    });
+});

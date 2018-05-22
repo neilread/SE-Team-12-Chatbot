@@ -12,9 +12,19 @@ var knownMajors = {
     "software development" : "https://www.aut.ac.nz/study/study-options/engineering-computer-and-mathematical-sciences/courses/bachelor-of-computer-and-information-sciences/software-development-major"
 }
 
-function getNextElement($, startSelector)
+function getFirstDigit(string)
 {
-    return $(startSelector).first().next();
+    var char;
+    for(let i = 0; i < string.length; i++)
+    {
+        let char = parseInt(string[i]);
+        if(Number.isInteger(char))
+        {
+            return char;
+        }
+    }
+
+    return null;
 }
 
 function getKnownDegreeEntry(degree)
@@ -77,6 +87,8 @@ class Paper
         {
             pName += words[i] + " ";
         }
+
+        console.log(parseInt(words[0]));
     
         return new Paper(words[0], pName.trim(), year, parseInt(words[words.length - 2].substr(1)));
     }
@@ -99,7 +111,7 @@ class Degree
     {
         this.points = points;
         this.numYears = numYears;
-        this.potentialPapers = potentialPapers;
+        this.papersForYears = papersForYears;
     }
 
     static assignPapersToStudent(degree)
@@ -107,24 +119,24 @@ class Degree
         let pointsUsed = 0;
         let papers = [];
 
-        for(let i = 0; i < degree.potentialPapers.length; i++)
+        for(let i = 0; i < degree.papersForYears.length; i++)
         {
-            for(let j = 0; j < degree.potentialPapers[i].compulsoryPapers.length; j++)
+            for(let j = 0; j < degree.papersForYears[i].compulsoryPapers.length; j++)
             {
-                let paper = degree.potentialPapers[i].compulsoryPapers[j];
+                let paper = degree.papersForYears[i].compulsoryPapers[j];
                 papers.push(paper);
                 points += paper.points;
             }
 
-            let paper = degree.potentialPapers[i].chooseOnePapers[0];
+            let paper = degree.papersForYears[i].chooseOnePapers[0];
         }
 
         // If there are still points to assign, add other optional papers
-        for(let i = 0; i < degree.potentialPapers.length && pointsUsed < points; i++)
+        for(let i = 0; i < degree.papersForYears.length && pointsUsed < points; i++)
         {
-            for(let j = 1; j < degree.potentialPapers[i].optionalPapers.length; j++)
+            for(let j = 1; j < degree.papersForYears[i].optionalPapers.length; j++)
             {
-                let paper = degree.potentialPapers[i].optionalPapers[j];
+                let paper = degree.papersForYears[i].optionalPapers[j];
                 papers.push(paper);
                 points += paper.points;
             }
@@ -133,7 +145,7 @@ class Degree
         // If there are still points to assign, add electives
         for(let i = 0; i < degree.electives.length && pointsUsed < points; i++)
         {
-            for(let j = 1; j < degree.potentialPapers[i].optionalPapers.length; j++)
+            for(let j = 1; j < degree.papersForYears[i].optionalPapers.length; j++)
             {
                 let paper = degree.potentialPapers[i].optionalPapers[j];
                 papers.push(paper);
@@ -301,19 +313,7 @@ async function findMajor(major, callback)
 getPapersForMajor("Astronomy", null, (papers) =>
 {
     console.log(papers);
-}, null, null);
-
-/*findMajor("Software Development", (link) =>
-{
-    console.log("Hello");
-    console.log(link);
-});*/
-
-/*getPapersForDegree("Bachelor of Computer and Information Sciences", null, (papers) =>
-{
-    console.log(papers);
-}, null);*/
-
+});
 module.exports =
 {
     Paper,
