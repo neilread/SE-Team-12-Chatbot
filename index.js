@@ -13,7 +13,8 @@ app.use(bodyParser.json());
 // http://localhost:5000/process-intent
 app.post('/process-intent', (req, res) => {
   console.log("Hey, it worked!");
-  let action = req.body.queryResult.action;
+  //return res.json({fulfillmentText: "Oh no!"});
+  let action = JSON.parse(req.body).queryResult.action;
   console.log(action);
 
   if(action == "send_paper_failed")
@@ -52,6 +53,7 @@ app.get("/", (req, res) =>
 
 app.set('port', (process.env.PORT || 5000));
 
-app.listen((app.get('port')), () => {
+app.listen((app.get('port')), () => 
+{
   console.log("Server is up and running...");
 });
