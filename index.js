@@ -39,7 +39,7 @@ app.get("/", (req, res) =>
 {
     //res.send("Hello World!");
     console.log("Get request success!");
-    res.sendFile(__dirname + "/index.html");
+    res.sendFile(__dirname + "/Index.html");
 });
 
 app.set('port', (process.env.PORT || 5000));
