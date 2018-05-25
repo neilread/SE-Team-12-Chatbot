@@ -19,6 +19,9 @@ app.post('/process-intent', (req, res) => {
   if(action == "send_paper_failed")
   {
     return res.json({fulfillmentText: "You failed, drop out"});
+    var response = res.json({fulfillmentText: "You failed, drop out"});
+    
+    return response;
   }
   else
   {
