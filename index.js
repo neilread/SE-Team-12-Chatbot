@@ -43,7 +43,6 @@ app.post('/process-intent', (req, res) => {
 
 app.get("/", (req, res) =>
 {
-    //res.send("Hello World!");
     console.log("Get request success!");
     res.sendFile(__dirname + "/Index.html");
 });
