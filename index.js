@@ -2,15 +2,16 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const scrape = require("./scrape");
 
-const server = express();
-server.use(bodyParser.urlencoded({
+const app = express();
+app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-server.use(bodyParser.json());
+app.use(bodyParser.json());
 
-// http://localhost:8000/process-intent
-server.post('/process-intent', (req, res) => {
+
+// http://localhost:5000/process-intent
+app.post('/process-intent', (req, res) => {
   console.log("Hey, it worked!");
   scrape.getPapersForMajor("Software Development",
    "Bachelor of Computer and Information Sciences",
@@ -26,20 +27,16 @@ server.post('/process-intent', (req, res) => {
     }
     return res.json({fulfillmentText: str});
   });
-  //res.json({fulfillmentText: req.body.queryResult.queryText});
-  /*return res.json({
-    speech: 'Something went right!',
-    displayText: 'Something went right!',
-    source: 'get-movie-details'
-  });*/
 });
 
-server.get("/", (req, res) =>
+app.get("/", (req, res) =>
 {
-    //res.sendFile("index.html", {"root":"html"});
     console.log("Get request success!");
+    res.sendFile(__dirname + "/Index.html");
 });
 
-server.listen((process.env.PORT || 8000), () => {
+app.set('port', (process.env.PORT || 5000));
+
+app.listen((app.get('port')), () => {
   console.log("Server is up and running...");
 });
