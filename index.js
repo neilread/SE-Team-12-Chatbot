@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 
-// http://localhost:8000/process-intent
+// http://localhost:5000/process-intent
 app.post('/process-intent', (req, res) => {
   console.log("Hey, it worked!");
   scrape.getPapersForMajor("Software Development",
