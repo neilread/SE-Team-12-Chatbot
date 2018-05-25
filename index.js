@@ -9,7 +9,6 @@ app.use(bodyParser.urlencoded({
 
 app.use(bodyParser.json());
 
-
 // http://localhost:5000/process-intent
 app.post("/process-intent", (req, res) => {
   console.log("Hey, it worked!");
@@ -17,10 +16,13 @@ app.post("/process-intent", (req, res) => {
   let action = req.body.queryResult.action;
   console.log(action);
 
+  let followupEvent = res.json.followupEvent({"name":"Welcome"});
+
   if (action == "input.welcome")
   {
-    return res.json({fulfillmentText: "Hi I'm Patricia, AUT's Chatbot! What can I help you with today? Webhook worked!"});
+    return res.json({fulfillmentText: "Hi I'm Patricia, AUT's Chatbot! What can I help you with today? Webhook THE!"});
   }
+  
 
   if(action == "send_paper_failed")
   {
