@@ -13,8 +13,8 @@ app.use(bodyParser.json());
 // http://localhost:5000/process-intent
 app.post("/process-intent", (req, res) => {
   console.log("Hey, it worked!");
-  return res.json({fulfillmentText: "Yay!!!"});
-  /*let action = JSON.parse(req.body).queryResult.action;
+  //return res.json({fulfillmentText: "Yay!!!"});
+  let action = req.body.queryResult.action;
   console.log(action);
 
   if(action == "send_paper_failed")
