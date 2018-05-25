@@ -37,9 +37,9 @@ server.post('/process-intent', (req, res) => {
 
 server.get("/", (req, res) =>
 {
-    res.send("Hello World!");
+    //res.send("Hello World!");
     console.log("Get request success!");
-    //res.sendFile("index.html", {root : ""});
+    res.sendFile(__dirname + "/index.html");
 });
 
 server.listen((process.env.PORT || 8000), () => {
