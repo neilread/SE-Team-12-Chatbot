@@ -2,16 +2,16 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const scrape = require("./scrape");
 
-const server = express();
-server.use(bodyParser.urlencoded({
+const app = express();
+app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-server.use(bodyParser.json());
+app.use(bodyParser.json());
 
 
 // http://localhost:8000/process-intent
-server.post('/process-intent', (req, res) => {
+app.post('/process-intent', (req, res) => {
   console.log("Hey, it worked!");
   scrape.getPapersForMajor("Software Development",
    "Bachelor of Computer and Information Sciences",
@@ -35,13 +35,13 @@ server.post('/process-intent', (req, res) => {
   });*/
 });
 
-server.get("/", (req, res) =>
+app.get("/", (req, res) =>
 {
     //res.send("Hello World!");
     console.log("Get request success!");
     res.sendFile(__dirname + "/index.html");
 });
 
-server.listen((process.env.PORT || 8000), () => {
+app.listen((process.env.PORT || 8000), () => {
   console.log("Server is up and running...");
 });
