@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 
 
 // http://localhost:5000/process-intent
-app.post('/process-intent', (req, res) => {
+app.post("/process-intent", (req, res) => {
   console.log("Hey, it worked!");
   //return res.json({fulfillmentText: "Oh no!"});
   let action = JSON.parse(req.body).queryResult.action;
