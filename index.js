@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 
 // http://localhost:5000/process-intent
 app.post("/process-intent", (req, res) => {
-  console.log("Hey, it worked!");
+  /*console.log("Hey, it worked!");
   //return res.json({fulfillmentText: "Yay!!!"});
   let action = req.body.queryResult.action;
   console.log(action);
@@ -27,11 +27,9 @@ app.post("/process-intent", (req, res) => {
   else
   {
     return res.json({fulfillmentText: "Oh no!"});
-  }
+  }*/
 
-  /*scrape.getPapersForMajor("Software Development",
-   "Bachelor of Computer and Information Sciences",
-    "Engineering, computer and mathematical sciences",
+  scrape.getPapersForMajor("Software Development",
      "https://www.aut.ac.nz/study/study-options/engineering-computer-and-mathematical-sciences/courses/bachelor-of-computer-and-information-sciences/software-development-major",
       (papers) =>
   {
@@ -42,7 +40,7 @@ app.post("/process-intent", (req, res) => {
         str += papers[i].code + ", ";
     }
     return res.json({fulfillmentText: str});
-  });*/
+  });
 });
 
 app.get("/", (req, res) =>
