@@ -27,12 +27,6 @@ app.post('/process-intent', (req, res) => {
     }
     return res.json({fulfillmentText: str});
   });
-  //res.json({fulfillmentText: req.body.queryResult.queryText});
-  /*return res.json({
-    speech: 'Something went right!',
-    displayText: 'Something went right!',
-    source: 'get-movie-details'
-  });*/
 });
 
 app.get("/", (req, res) =>

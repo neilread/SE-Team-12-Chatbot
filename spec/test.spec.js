@@ -24,7 +24,7 @@ describe("findDegree()", () =>
             done();
         });
     });
-}, 30000);
+}, 50000);
 
 describe("findMajor()", () =>
 {
@@ -35,7 +35,7 @@ describe("findMajor()", () =>
             expect(link).toEqual("https://www.aut.ac.nz/study/study-options/engineering-computer-and-mathematical-sciences/courses/bachelor-of-computer-and-information-sciences/software-development-major");
             done();
         });
-    }, 30000);
+    }, 50000);
 });
 
 describe("getPapersForMajor()", () =>
@@ -58,7 +58,7 @@ describe("getPapersForMajor()", () =>
             done();
         }, "Bachelor of Computer and Information Sciences",
         "Engineering, computer and mathematical sciences");
-    }, 30000);
+    }, 50000);
 
     it("It should return an appropriate list of papers that will qualify a student for a specific major if the major's degree is not specified", (done) =>
     {
@@ -77,7 +77,7 @@ describe("getPapersForMajor()", () =>
             "ENSE501", "ENSE502", "COMP612", "MATH604", "COMP705", "COMP710", "COMP716", "COMP720", "COMP724", "INFS700"]);
             done();
         });
-    }, 30000);
+    }, 50000);
 });
 
 describe("getPapersForDegree()", () =>
@@ -98,7 +98,7 @@ describe("getPapersForDegree()", () =>
 
             done();
         });
-    }, 30000);
+    }, 50000);
 });
 
 /*describe("getCourseForMajor()", () =>
