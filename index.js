@@ -1,3 +1,5 @@
+/* A webhook that links scrape.js to the front end software dialog flow*/
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const scrape = require("./scrape");
