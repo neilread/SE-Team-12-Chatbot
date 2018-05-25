@@ -42,6 +42,8 @@ app.get("/", (req, res) =>
     res.sendFile(__dirname + "/index.html");
 });
 
-app.listen((process.env.PORT || 8000), () => {
+app.set('port', (process.env.PORT || 5000));
+
+app.listen((app.get('port')), () => {
   console.log("Server is up and running...");
 });
