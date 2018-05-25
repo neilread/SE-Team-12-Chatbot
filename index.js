@@ -9,6 +9,7 @@ server.use(bodyParser.urlencoded({
 
 server.use(bodyParser.json());
 
+
 // http://localhost:8000/process-intent
 server.post('/process-intent', (req, res) => {
   console.log("Hey, it worked!");
@@ -36,8 +37,9 @@ server.post('/process-intent', (req, res) => {
 
 server.get("/", (req, res) =>
 {
-    res.sendFile("index.html", {"root":"html"});
+    res.send("Hello World!");
     console.log("Get request success!");
+    //res.sendFile("index.html", {root : ""});
 });
 
 server.listen((process.env.PORT || 8000), () => {
