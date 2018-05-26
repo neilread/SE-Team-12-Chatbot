@@ -13,25 +13,26 @@ app.use(bodyParser.json());
 // http://localhost:5000/process-intent
 app.post("/process-intent", (req, res) => {
   console.log("Hey, it worked!");
-  //return res.json({fulfillmentText: "Yay!!!"});
-  let action = req.body.queryResult.action;
-  console.log(action);
-
-  if (action == "input.welcome")
-  {
-    return res.json({fulfillmentText: "Hi I'm Patricia, AUT's Chatbot! What can I help you with today? Webhook worked!"});
+  let queryResult = req.body.queryResult;
+  let action = queryResult.action;
+  switch(action){
+      case "send_take_major": 
+          scrape.getPapersForMajor(queryResult.parameters.major, (papers) =>
+          {
+            let str = "";
+            console.log(papers);
+            for(let i = 0; i < papers.length; i++)
+            {
+                str += papers[i].code + ", ";
+            }
+            return res.json({fulfillmentText: str});
+          });
+          break;
+      default:
+          console.log("Action not matched");
   }
 
-  if(action == "send_paper_failed")
-  {
-    return res.json({fulfillmentText: "You failed, drop out"});
-  }
-  else
-  {
-    return res.json({fulfillmentText: "Oh no!"});
-  }
-
-  scrape.getPapersForMajor("Software Development",
+  /*scrape.getPapersForMajor("Software Development",
      "https://www.aut.ac.nz/study/study-options/engineering-computer-and-mathematical-sciences/courses/bachelor-of-computer-and-information-sciences/software-development-major",
       (papers) =>
   {
@@ -42,7 +43,7 @@ app.post("/process-intent", (req, res) => {
         str += papers[i].code + ", ";
     }
     return res.json({fulfillmentText: str});
-  });
+  });*/
 });
 
 app.get("/", (req, res) =>
