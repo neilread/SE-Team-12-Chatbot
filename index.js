@@ -9,11 +9,9 @@ app.use(bodyParser.urlencoded({
 
 app.use(bodyParser.json());
 
-
 // http://localhost:5000/process-intent
 app.post("/process-intent", (req, res) => {
   console.log("Hey, it worked!");
-<<<<<<< HEAD
   let queryResult = req.body.queryResult;
   let action = queryResult.action;
   switch(action){
@@ -31,27 +29,6 @@ app.post("/process-intent", (req, res) => {
           break;
       default:
           console.log("Action not matched");
-=======
-  //return res.json({fulfillmentText: "Yay!!!"});
-  let action = req.body.queryResult.action;
-  console.log(action);
-
-  let followupEvent = res.json.followupEvent({"name":"Welcome"});
-
-  if (action == "input.welcome")
-  {
-    return res.json({fulfillmentText: "Hi I'm Patricia, AUT's Chatbot! What can I help you with today? Webhook THE!"});
-  }
-  
-
-  if(action == "send_paper_failed")
-  {
-    return res.json({fulfillmentText: "You failed, drop out"});
-  }
-  else
-  {
-    return res.json({fulfillmentText: "Oh no!"});
->>>>>>> 9b76738952a15d92019ce0996e122b0316015ef0
   }
 
   /*scrape.getPapersForMajor("Software Development",
