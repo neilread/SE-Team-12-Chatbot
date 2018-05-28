@@ -58,22 +58,26 @@ function updateKnownMajors(major, link)
 // Represents an AUT paper
 class Paper
 {
-    constructor(code, name, year, points)
+    constructor(code, name, level, points)
     {
         this.code = code;
         this.name = name;
-        this.year = year;
+        this.level = level;
         this.points = points;
+    }
+
+    toString()
+    {
+        return this.code;
     }
 
     /**
      * Converts a string to a paper with the passed year.
      * Text is in the format [code] [name] ([points] points)
      */
-    static textToPaper(text, year)
+    static textToPaper(text)
     {
         util.checkIsType(text, "string", "text");
-        util.checkIsInteger(year, "year");
 
         let words = text.trim().split(" ");
         let pName = "";
@@ -88,28 +92,73 @@ class Paper
             pName += words[i] + " ";
         }
     
-        return new Paper(words[0], pName.trim(), year, parseInt(words[words.length - 2].substr(1)));
+        return new Paper(words[0], pName.trim(), getFirstDigit(words[0]), parseInt(words[words.length - 2].substr(1)));
+    }
+
+    static getCodes(papers)
+    {
+        let codes = [];
+        papers.forEach((p) =>
+        {
+            codes.push(p.code);
+        })
+        return codes;
     }
 }
 
 class PapersForYear
 {
-    constructor(year, compulsoryPapers, chooseOnePapers, electives)
+    constructor(year = 1, compulsoryPapers = [], chooseOnePapers = [])
     {
         this.year = year;
         this.compulsoryPapers = compulsoryPapers;
         this.chooseOnePapers = chooseOnePapers;
-        this.electives = electives;
+    }
+
+    toString()
+    {
+        return this.year + ": " + this.compulsoryPapers + ", " + this.chooseOnePapers;
     }
 }
 
 class Degree
 {
-    constructor(points, numYears, potentialPapers)
+    constructor(points = 360, numYears = 3, papersForYears = [], electives = [])
     {
         this.points = points;
         this.numYears = numYears;
         this.papersForYears = papersForYears;
+        this.electives = electives;
+    }
+
+    static getPapers(degree)
+    {
+        let papers = [];
+        
+        degree.papersForYears.forEach((py) =>
+        {
+            py.compulsoryPapers.forEach((p) =>
+            {
+                papers.push(p);
+            });
+
+            py.chooseOnePapers.forEach((p) =>
+            {
+                papers.push(p);
+            });
+        });
+
+        degree.electives.forEach((p) =>
+        {
+            papers.push(p);
+        });
+
+        return papers;
+    }
+
+    toString()
+    {
+        return "(" + points + ", " + this.numYears + "): \n" + this.papersForYears + "\n" + this.electives;
     }
 
     static assignPapersToStudent(degree)
@@ -123,32 +172,32 @@ class Degree
             {
                 let paper = degree.papersForYears[i].compulsoryPapers[j];
                 papers.push(paper);
-                points += paper.points;
+                pointsUsed += paper.points;
             }
 
+            console.log("heyo");
             let paper = degree.papersForYears[i].chooseOnePapers[0];
+            papers.push(paper);
+            pointsUsed += paper.points;
         }
 
         // If there are still points to assign, add other optional papers
-        for(let i = 0; i < degree.papersForYears.length && pointsUsed < points; i++)
+        for(let i = 0; i < degree.papersForYears.length && pointsUsed < degree.points; i++)
         {
-            for(let j = 1; j < degree.papersForYears[i].optionalPapers.length; j++)
+            for(let j = 1; j < degree.papersForYears[i].chooseOnePapers.length && pointsUsed < degree.points; j++)
             {
-                let paper = degree.papersForYears[i].optionalPapers[j];
+                let paper = degree.papersForYears[i].chooseOnePapers[j];
                 papers.push(paper);
-                points += paper.points;
+                pointsUsed += paper.points;
             }
         }
 
         // If there are still points to assign, add electives
-        for(let i = 0; i < degree.electives.length && pointsUsed < points; i++)
+        for(let i = 0; i < degree.electives.length && pointsUsed < degree.points; i++)
         {
-            for(let j = 1; j < degree.papersForYears[i].optionalPapers.length; j++)
-            {
-                let paper = degree.potentialPapers[i].optionalPapers[j];
-                papers.push(paper);
-                points += paper.points;
-            }
+            let paper = degree.electives[i];
+            papers.push(paper);
+            pointsUsed += paper.points;
         }
 
         return papers;
@@ -175,41 +224,34 @@ async function getPapersForMajor(major, webpage, callback, degree, prog)
         // Retrieves all lines of text corresponding to a paper and their year
         await accessHTML(link, ($) =>
         {
+            let degree = new Degree();
             let paperStrings = [];
             $("h2:contains('Year')").each((index, y) =>
             {
-                let year = parseInt($(y).text().split(" ")[1]);
-                $(y).nextAll("h3:contains('Complete the following papers')").nextAll("ul").first().find("li a.paperbox").each((index, p) =>
+                degree.papersForYears[index] = new PapersForYear(index + 1);
+
+                // Compulsory papers
+                $(y).nextAll("h3:contains('Complete the following papers')").nextAll("ul").first().find("li a.paperbox:contains('points')").each((i, p) =>
                 {
-                    paperStrings.push(
-                    {
-                        t: $(p).text(), 
-                        y: year
-                    });
+                    paperStrings.push($(p).text());
+                    degree.papersForYears[index].compulsoryPapers.push(Paper.textToPaper($(p).text()));
                 });
 
-                $(y).nextAll("h3:contains('And choose one of')").nextAll("ul").first().find("li a.paperbox").each((index, p) =>
+                // 'Choose one' papers
+                $(y).nextAll("h3:contains('And choose one of')").nextAll("ul").first().find("li a.paperbox:contains('points')").each((i, p) =>
                 {
-                    paperStrings.push(
-                    {
-                        t: $(p).text(), 
-                        y: year
-                    });
+                    paperStrings.push($(p).text());
+                    degree.papersForYears[index].chooseOnePapers.push(Paper.textToPaper($(p).text()));
                 });
             });
 
+            // Electives
             $("h3:contains('Level')").each((index, lvl) =>
             {
-                // Converts level to year e.g. Level 5 -> Year 1
-                let year = parseInt($(lvl).text().split(" ")[1]) - 4;
-
-                $(lvl).nextAll("ul").first().find("li a.paperbox").each((index, p) =>
+                $(lvl).nextAll("ul").first().find("li a.paperbox:contains('points')").each((index, p) =>
                 {
-                    paperStrings.push(
-                    {
-                        t: $(p).text(), 
-                        y: year
-                    });
+                    paperStrings.push($(p).text());
+                    degree.electives.push(Paper.textToPaper($(p).text()));
                 });
             });
 
@@ -219,14 +261,15 @@ async function getPapersForMajor(major, webpage, callback, degree, prog)
             {
                 try
                 {
-                    papers.push(Paper.textToPaper(p.t, p.y));
+                    papers.push(Paper.textToPaper(p));
                 }
                 catch
                 {
                 }
             });
 
-            callback(papers);
+            //callback(papers);
+            callback(degree);
         });
     }
 
@@ -308,6 +351,14 @@ async function findMajor(major, callback)
     });
 }
 
+async function getCourseForMajor(major, callback)
+{
+    await getPapersForMajor(major, null, (degreePapers) =>
+    {
+        callback(Degree.assignPapersToStudent(degreePapers));
+    });
+}
+
 module.exports =
 {
     Paper,
@@ -315,5 +366,18 @@ module.exports =
     accessHTML,
     findDegree,
     findMajor,
-    getPapersForDegree
+    getPapersForDegree,
+    getCourseForMajor,
+    Degree
 }
+
+getCourseForMajor("Astronomy", (papers) =>
+{
+    console.log(Paper.getCodes(papers));
+    let num = 0;
+    papers.forEach((p) =>
+    {
+        num += p.points;
+    });
+    console.log(num);
+});
