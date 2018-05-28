@@ -359,6 +359,26 @@ async function getCourseForMajor(major, callback)
     });
 }
 
+async function getSuitableJobs(theMajor, callback)
+{
+    findMajor(theMajor, (page) => 
+    {
+        console.log(page);
+
+        accessHTML(page, ($) => 
+        {
+            let jobArray = [];
+
+            $("div.col-sm-8 ul li ").each( (i, e) =>
+            {
+               jobArray.push($(e).text()); 
+            });
+
+            callback(jobArray);
+        });
+    });
+}
+
 module.exports =
 {
     Paper,
@@ -368,16 +388,6 @@ module.exports =
     findMajor,
     getPapersForDegree,
     getCourseForMajor,
-    Degree
+    Degree,
+    getSuitableJobs
 }
-
-getCourseForMajor("Astronomy", (papers) =>
-{
-    console.log(Paper.getCodes(papers));
-    let num = 0;
-    papers.forEach((p) =>
-    {
-        num += p.points;
-    });
-    console.log(num);
-});

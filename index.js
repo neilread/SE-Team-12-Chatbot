@@ -27,6 +27,12 @@ app.post("/process-intent", (req, res) => {
             return res.json({fulfillmentText: "A suggested set of papers for "+queryResult.parameters.major+" would be: "+str});
           });
           break;
+
+          case "ask_about_jobs":
+            scrape.getSuitableJobs(queryResult.parameters.major, (theJobs) =>
+        {
+            return res.json({fulfillmentText: "If you took "+queryResult.parameters.major+" you could become: "+theJobs});
+        })  
       default:
           console.log("Action not matched");
   }
