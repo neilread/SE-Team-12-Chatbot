@@ -31,18 +31,6 @@ app.post("/process-intent", (req, res) => {
           console.log("Action not matched");
   }
 
-  /*scrape.getPapersForMajor("Software Development",
-     "https://www.aut.ac.nz/study/study-options/engineering-computer-and-mathematical-sciences/courses/bachelor-of-computer-and-information-sciences/software-development-major",
-      (papers) =>
-  {
-    let str = "";
-    console.log(papers);
-    for(let i = 0; i < papers.length; i++)
-    {
-        str += papers[i].code + ", ";
-    }
-    return res.json({fulfillmentText: str});
-  });*/
 });
 
 app.get("/", (req, res) =>
@@ -50,8 +38,6 @@ app.get("/", (req, res) =>
     console.log("Get request success!");
     res.sendFile(__dirname + "/Index.html");
 });
-
-//app.set('port', (process.env.PORT || 5000));
 
 app.listen((process.env.PORT || 8000), () => {
   console.log("Server is up and running...");
