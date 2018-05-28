@@ -28,12 +28,17 @@ app.post("/process-intent", (req, res) => {
           });
           break;
 
-          case "ask_about_jobs":
+       case "ask_about_jobs":
+            console.log("Test");
             scrape.getSuitableJobs(queryResult.parameters.major, (theJobs) =>
         {
+
             return res.json({fulfillmentText: "If you took "+queryResult.parameters.major+" you could become: "+theJobs});
-        })  
+        });  
+        break;
+
       default:
+            return res.json({fulfillmentText: "I'm sorry, but I didn't understand what you said."});
           console.log("Action not matched");
   }
 
