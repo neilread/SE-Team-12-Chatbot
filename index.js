@@ -24,7 +24,7 @@ app.post("/process-intent", (req, res) => {
             {
                 str += papers[i].code + ", ";
             }
-            return res.json({fulfillmentText: str});
+            return res.json({fulfillmentText: "A suggested set of papers for "+queryResult.parameters.major+" would be: "+str});
           });
           break;
       default:
