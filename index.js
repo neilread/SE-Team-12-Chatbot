@@ -38,7 +38,6 @@ app.post("/process-intent", (req, res) => {
         break;
 
       default:
-            return res.json({fulfillmentText: "I'm sorry, but I didn't understand what you said."});
           console.log("Action not matched");
   }
 
