@@ -285,14 +285,6 @@ async function getPapersForMajor(major, webpage, callback, degree, prog)
     }
 }
 
-<<<<<<< HEAD
-    if(major == null)
-    {
-        major = "Software Development";
-    }
-
-    return await getPageByElementText(webpage, "li a", major);
-=======
 async function accessHTML(url, callback)
 {
     await request.get(url, async (error, response, html) =>
@@ -302,7 +294,6 @@ async function accessHTML(url, callback)
             await callback(cheerio.load(html));
         }
     });
->>>>>>> e9bb0891368f6f42bbaa4715df90983061198f77
 }
 
 async function findLinks(text, page, selectors, callback, count = 0)
@@ -368,11 +359,7 @@ async function getCourseForMajor(major, callback)
     });
 }
 
-<<<<<<< HEAD
-getPapersForMajor("Computer Science", "Bachelor of Computer and Information Sciences", "Engineering, computer and mathematical sciences", null).then((value)=>
-=======
 async function getSuitableJobs(theMajor, callback)
->>>>>>> e9bb0891368f6f42bbaa4715df90983061198f77
 {
     findMajor(theMajor, (page) => 
     {
