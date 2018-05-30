@@ -16,7 +16,7 @@ app.post("/process-intent", (req, res) => {
   let action = queryResult.action;
   switch(action){
       case "send_take_major": 
-          scrape.getPapersForMajor(queryResult.parameters.major, (papers) =>
+          scrape.getCourseForMajor(queryResult.parameters.major, (papers) =>
           {
             let str = "";
             console.log(papers);
