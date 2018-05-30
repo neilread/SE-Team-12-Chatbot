@@ -1,225 +1,406 @@
-var request = require('request');
-var cheerio = require('cheerio');
+const request = require("request");
+const cheerio = require("cheerio");
+const util = require("./util");
 
-request('http://www.google.com/', function(err, resp, html) {
-        if (!err){
-          const $ = cheerio.load(html);
-          //console.log(html); 
-      }
-});
+const undergradProgrammes = "https://www.aut.ac.nz/study/study-options";
 
-class Test{
-    static t()
+var knownDegrees = {
+    "bachelor of computer and information sciences" : "https://www.aut.ac.nz/study/study-options/engineering-computer-and-mathematical-sciences/courses/bachelor-of-computer-and-information-sciences"
+}
+
+var knownMajors = {
+    "software development" : "https://www.aut.ac.nz/study/study-options/engineering-computer-and-mathematical-sciences/courses/bachelor-of-computer-and-information-sciences/software-development-major"
+}
+
+function getFirstDigit(string)
+{
+    var char;
+    for(let i = 0; i < string.length; i++)
     {
-        return "Hello World!";
+        let char = parseInt(string[i]);
+        if(Number.isInteger(char))
+        {
+            return char;
+        }
+    }
+
+    return null;
+}
+
+function getKnownDegreeEntry(degree)
+{
+    return knownDegrees[degree.trim().toLowerCase()];
+}
+
+function updateKnownDegrees(degree, link)
+{
+    degree = degree.trim().toLowerCase();
+    if(!knownDegrees[degree])
+    {
+        knownDegrees[degree] = link;
     }
 }
 
-const puppeteer = require("puppeteer");
-const undergradProgrammes = "https://www.aut.ac.nz/study/study-options";
+function getKnownMajorEntry(major)
+{
+    return knownMajors[major.trim().toLowerCase()];
+}
 
+function updateKnownMajors(major, link)
+{
+    major = major.trim().toLowerCase();
+    if(!knownMajors[major])
+    {
+        knownMajors[major] = link;
+    }
+}
+
+// Represents an AUT paper
 class Paper
 {
-    constructor(code, name, year, points)
+    constructor(code, name, level, points)
     {
         this.code = code;
         this.name = name;
-        this.year = year;
+        this.level = level;
         this.points = points;
     }
 
-    static textToPaper(text, year)
+    toString()
     {
-        let words = text.split(" ");
+        return this.code;
+    }
 
-        let i = 1;
+    /**
+     * Converts a string to a paper with the passed year.
+     * Text is in the format [code] [name] ([points] points)
+     */
+    static textToPaper(text)
+    {
+        util.checkIsType(text, "string", "text");
+
+        let words = text.trim().split(" ");
         let pName = "";
-    
-        // To do: error trap for infinite loop
-        while(!words[i].startsWith("("))
+        
+        if(words.length < 4)
         {
-            pName += words[i++] + " ";
+            throw new Error("Invalid text format");
+        }
+
+        for(let i = 1; i < words.length - 2; i++)
+        {
+            pName += words[i] + " ";
         }
     
-        return new Paper(words[0], pName, year.text().split(" ")[1], words[i].substr(1));
+        return new Paper(words[0], pName.trim(), getFirstDigit(words[0]), parseInt(words[words.length - 2].substr(1)));
+    }
+
+    static getCodes(papers)
+    {
+        let codes = [];
+        papers.forEach((p) =>
+        {
+            codes.push(p.code);
+        })
+        return codes;
     }
 }
 
-async function launchPage(url)
+class PapersForYear
 {
-    const b = await puppeteer.launch();
-    const p = await b.newPage();
-    await p.goto(url);
-    return { browser : b, page : p};
-}
-
-async function getPageByElement(url)
-{
-    getPageByElement(launchPage(url));
-}
-
-async function getPageByElementText(webpage, selector, text)
-{
-    var result = null;
-    let headings = await getElementsBySelector(webpage, selector);
-    var p = null;
-
-    await headings.forEach(h =>
+    constructor(year = 1, compulsoryPapers = [], chooseOnePapers = [])
     {
-        if(h.text === text)
-        {
-            p = h.link;
-        }
-    });
-
-    if(p != null)
-    {
-        result = await launchPage(p);
+        this.year = year;
+        this.compulsoryPapers = compulsoryPapers;
+        this.chooseOnePapers = chooseOnePapers;
     }
 
-    return result;
+    toString()
+    {
+        return this.year + ": " + this.compulsoryPapers + ", " + this.chooseOnePapers;
+    }
 }
 
-async function getElementsBySelector(webpage, selector)
+class Degree
 {
-    const result = await webpage.page.evaluate((selector) =>
+    constructor(points = 360, numYears = 3, papersForYears = [], electives = [])
     {
-        let elements = Array.from(document.querySelectorAll(selector));
-        let links = elements.map(element => 
+        this.points = points;
+        this.numYears = numYears;
+        this.papersForYears = papersForYears;
+        this.electives = electives;
+    }
+
+    static getPapers(degree)
+    {
+        let papers = [];
+        
+        degree.papersForYears.forEach((py) =>
         {
-            return { "link" : element.href, "text" : element.textContent };
+            py.compulsoryPapers.forEach((p) =>
+            {
+                papers.push(p);
+            });
+
+            py.chooseOnePapers.forEach((p) =>
+            {
+                papers.push(p);
+            });
         });
-        return links;
-    }, selector);
-    return result;
-}
 
-async function accessProgramme(prog)
-{
-    const webpage = await launchPage(undergradProgrammes);
-    return await getPageByElementText(webpage, "div.col-sm-6 ul li a", prog);
-}
+        degree.electives.forEach((p) =>
+        {
+            papers.push(p);
+        });
 
-async function accessDegree(degree, prog, webpage)
-{
-    if(webpage == null)
-    {
-        // To do, error check if prog is null
-        webpage = await accessProgramme(prog);
+        return papers;
     }
 
-    return await getPageByElementText(webpage, "li a", degree);
-}
-
-async function accessMajor(major, degree, prog, webpage)
-{
-    if(webpage == null)
+    toString()
     {
-        // To do, error check if prog is null
-        webpage = await accessDegree(degree, prog, null);
+        return "(" + points + ", " + this.numYears + "): \n" + this.papersForYears + "\n" + this.electives;
     }
 
+    static assignPapersToStudent(degree)
+    {
+        let pointsUsed = 0;
+        let papers = [];
+
+        for(let i = 0; i < degree.papersForYears.length; i++)
+        {
+            for(let j = 0; j < degree.papersForYears[i].compulsoryPapers.length; j++)
+            {
+                let paper = degree.papersForYears[i].compulsoryPapers[j];
+                papers.push(paper);
+                pointsUsed += paper.points;
+            }
+
+            console.log("heyo");
+            let paper = degree.papersForYears[i].chooseOnePapers[0];
+            papers.push(paper);
+            pointsUsed += paper.points;
+        }
+
+        // If there are still points to assign, add other optional papers
+        for(let i = 0; i < degree.papersForYears.length && pointsUsed < degree.points; i++)
+        {
+            for(let j = 1; j < degree.papersForYears[i].chooseOnePapers.length && pointsUsed < degree.points; j++)
+            {
+                let paper = degree.papersForYears[i].chooseOnePapers[j];
+                papers.push(paper);
+                pointsUsed += paper.points;
+            }
+        }
+
+        // If there are still points to assign, add electives
+        for(let i = 0; i < degree.electives.length && pointsUsed < degree.points; i++)
+        {
+            let paper = degree.electives[i];
+            papers.push(paper);
+            pointsUsed += paper.points;
+        }
+
+        return papers;
+    }
+}
+
+// Returns all papers for the first listed major of the specified degree
+async function getPapersForDegree(degree, webpage, callback, prog)
+{
+    await findDegree(degree, async (link) => 
+    {
+        await accessHTML(link, async ($) =>
+        {
+            let m = $("h2:contains('Majors')").next().find("li a").first();
+            await getPapersForMajor($(m).text(), $(m).attr("href"), callback);
+        });
+    });
+}
+
+async function getPapersForMajor(major, webpage, callback, degree, prog)
+{
+    let retrievePapers = async (link) =>
+    {
+        // Retrieves all lines of text corresponding to a paper and their year
+        await accessHTML(link, ($) =>
+        {
+            let degree = new Degree();
+            let paperStrings = [];
+            $("h2:contains('Year')").each((index, y) =>
+            {
+                degree.papersForYears[index] = new PapersForYear(index + 1);
+
+                // Compulsory papers
+                $(y).nextAll("h3:contains('Complete the following papers')").nextAll("ul").first().find("li a.paperbox:contains('points')").each((i, p) =>
+                {
+                    paperStrings.push($(p).text());
+                    degree.papersForYears[index].compulsoryPapers.push(Paper.textToPaper($(p).text()));
+                });
+
+                // 'Choose one' papers
+                $(y).nextAll("h3:contains('And choose one of')").nextAll("ul").first().find("li a.paperbox:contains('points')").each((i, p) =>
+                {
+                    paperStrings.push($(p).text());
+                    degree.papersForYears[index].chooseOnePapers.push(Paper.textToPaper($(p).text()));
+                });
+            });
+
+            // Electives
+            $("h3:contains('Level')").each((index, lvl) =>
+            {
+                $(lvl).nextAll("ul").first().find("li a.paperbox:contains('points')").each((index, p) =>
+                {
+                    paperStrings.push($(p).text());
+                    degree.electives.push(Paper.textToPaper($(p).text()));
+                });
+            });
+
+            let papers = [];
+
+            paperStrings.map((p) =>
+            {
+                try
+                {
+                    papers.push(Paper.textToPaper(p));
+                }
+                catch
+                {
+                }
+            });
+
+            //callback(papers);
+            callback(degree);
+        });
+    }
+
+    webpage = webpage ? webpage : getKnownMajorEntry(major);
+
+    if(webpage == null)
+    {
+        await findMajor(major, retrievePapers);
+    }
+    else
+    {
+        await retrievePapers(webpage);
+    }
+}
+
+<<<<<<< HEAD
     if(major == null)
     {
         major = "Software Development";
     }
 
     return await getPageByElementText(webpage, "li a", major);
+=======
+async function accessHTML(url, callback)
+{
+    await request.get(url, async (error, response, html) =>
+    {
+        if(!error)
+        {
+            await callback(cheerio.load(html));
+        }
+    });
+>>>>>>> e9bb0891368f6f42bbaa4715df90983061198f77
 }
 
-async function getPapersForMajor(major, degree, prog, webpage)
+async function findLinks(text, page, selectors, callback, count = 0)
 {
-    if(webpage == null)
+    if(count == 0)
     {
-        webpage = await accessMajor(major, degree, prog, webpage);
+        text = text.trim().toLowerCase();
     }
 
-    await webpage.page.addScriptTag({ content: `${Paper}`});
-    
-    return await webpage.page.evaluate(function()
+    await accessHTML(page, async ($) =>
     {
-        let papers = new Array();
-        $.each($("h2:contains('Year')"), (index, y) =>
+        let list = $(selectors[count]).next().find("li a");
+        if(count == selectors.length - 1)
         {
-            $.each($(y).nextAll("h3:contains('Complete the following papers')").first().nextAll("ul").first().children("li"), (index, p) =>
+            $(list).each((i, element) =>
             {
-                papers.push(Paper.textToPaper($(p).text(), $(y)));
+                if($(element).text().trim().toLowerCase() == text)
+                {
+                    callback($(element).attr("href"));
+                    return;
+                }
+            });
+        }
+        else
+        {
+            let links = [];
+            $(list).each((i, element) =>
+            {
+                links.push($(element).attr("href"));
             });
 
-            let optionalPaper = $(y).nextAll("h3:contains('choose one of')").first().nextAll("ul").children("li").first();
-            papers.push(Paper.textToPaper($(optionalPaper).text(), $(y)));
-        });
-        
-        return papers;
-    });
-}
-
-async function findDegree(degree)
-{
-    let webpage = await launchPage(undergradProgrammes);
-
-    let s = await webpage.page.evaluate(() =>
-    {
-        let a = null;
-        $.each($("div.col-sm-6 ul li a"), (i, p) =>
-        {
-            /*accessDegree(degree, p.text()).then(value =>
+            for(let i = 0; i < links.length; i++)
             {
-                if(value != null)
-                {
-                    a = value;
-                }
-            });*/
-        });
-        return a;
+                await findLinks(text, links[i], selectors, callback, count + 1);
+            }
+        }
     });
-
-    s.page.screenshot("test.png");
-
-    /*let programmes = await getElementsBySelector(webpage, "div.col-sm-6 ul li a");
-    console.log(programmes);
-    degreePages = [];
-    
-    await programmes.forEach(p =>
-    {
-        let page = launchPage(p.link).then(() =>
-        {
-            let degrees = getElementsBySelector(page, "");
-        });
-    });
-    
-    /*await webpage.page.evaluate(() =>
-    {
-        let degreePage = null;
-        $.each($("div.col-sm-6 ul li"), (i, prog) =>
-        {
-            degreePage = await launchPage(prog.href);
-        });
-    });*/
 }
 
-function test(arg)
+async function findDegree(degree, callback)
 {
-    return "Hello" + arg;
+    await findLinks(degree, undergradProgrammes, ["h2:contains('Browse study options')", "h2:contains('Bachelor's degree')"], (link) =>
+    {
+        updateKnownDegrees(degree, link);
+        callback(link);
+    });
 }
 
+async function findMajor(major, callback)
+{
+    await findLinks(major, undergradProgrammes, ["h2:contains('Browse study options')", "h2:contains('Bachelor's degree')", "h2:contains('Major')"], (link) =>
+    {
+        updateKnownMajors(major, link);
+        callback(link);
+    });
+}
+
+async function getCourseForMajor(major, callback)
+{
+    await getPapersForMajor(major, null, (degreePapers) =>
+    {
+        callback(Degree.assignPapersToStudent(degreePapers));
+    });
+}
+
+<<<<<<< HEAD
 getPapersForMajor("Computer Science", "Bachelor of Computer and Information Sciences", "Engineering, computer and mathematical sciences", null).then((value)=>
+=======
+async function getSuitableJobs(theMajor, callback)
+>>>>>>> e9bb0891368f6f42bbaa4715df90983061198f77
 {
-    if(value != null)
+    findMajor(theMajor, (page) => 
     {
-        //value.page.screenshot({path: 'test.png'});
-        console.log(value);
-        //console.log(typeof(value));
-        //console.log(value[0]);
-    }
-    else
-    {
-        console.log("Oh no!");
-    }
-    console.log("done");
+        console.log(page);
 
-    return value;
-});
+        accessHTML(page, ($) => 
+        {
+            let jobArray = [];
 
-//findDegree("Software Development");
-module.exports.Test = Test;
+            $("div.col-sm-8 ul li ").each( (i, e) =>
+            {
+               jobArray.push($(e).text()); 
+            });
+
+            callback(jobArray);
+        });
+    });
+}
+
+module.exports =
+{
+    Paper,
+    getPapersForMajor,
+    accessHTML,
+    findDegree,
+    findMajor,
+    getPapersForDegree,
+    getCourseForMajor,
+    Degree,
+    getSuitableJobs
+}

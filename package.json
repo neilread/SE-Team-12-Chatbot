@@ -1,0 +1,31 @@
+{
+  "name": "se-team-12-chatbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "jasmine"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neilread/SE-Team-12-Chatbot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/neilread/SE-Team-12-Chatbot/issues"
+  },
+  "homepage": "https://github.com/neilread/SE-Team-12-Chatbot#readme",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "cheerio": "^1.0.0-rc.2",
+    "express": "^4.16.3",
+    "request": "^2.85.0",
+    "jasmine": "^3.1.0",
+    "jasmine-node": "^1.14.5"
+  },
+  "engines": {
+    "node": "10.0.0"
+  }
+}
